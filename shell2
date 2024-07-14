@@ -1,0 +1,54 @@
+pipeline {
+    agent {
+        label 'aws'  // Run this pipeline on the node labeled 'aws'
+    }
+
+    stages {
+        stage('Test API with Authentication') {
+            steps {
+                echo 'Testing the API with Authentication...'
+                script {
+                    def shellScript = '''#!/bin/bash
+                    # Define the API endpoint and login credentials
+                    API_URL="https://reqres.in/api/login"
+                    USERNAME="eve.holt@reqres.in"
+                    PASSWORD="cityslicka"
+
+                    # Create the JSON payload
+                    PAYLOAD=$(cat <<'EOF'
+                    {
+                      "email": "'"${USERNAME}"'",
+                      "password": "'"${PASSWORD}"'"
+                    }
+EOF
+                    )
+
+                    # Send the POST request to the API and capture the response
+                    RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$API_URL")
+
+                    # Check if the response contains a token (indicating success)
+                    TOKEN=$(echo $RESPONSE | jq -r '.token')
+
+                    if [ "$TOKEN" != "null" ]; then
+                      echo "Successfully authenticated, token: $TOKEN"
+                    else
+                      echo "Failed to authenticate, response: $RESPONSE"
+                    fi
+                    '''
+
+                    // Execute the shell script
+                    sh(script: shellScript)
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}
