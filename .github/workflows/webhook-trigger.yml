@@ -1,0 +1,11 @@
+name: Webhook Trigger
+
+on:
+  workflow_dispatch: # Enables manual and API-based triggering
+
+jobs:
+  webhook_trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check event
+        run: echo "Webhook received with inputs: ${{ github.event.inputs }}"
